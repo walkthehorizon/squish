@@ -153,7 +153,7 @@ class ImageGridItem extends StatelessWidget {
         children: [
           // 文件名
           Text(
-            imageItem.name,
+            imageItem.truncatedName,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 12,

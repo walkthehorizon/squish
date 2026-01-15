@@ -9,31 +9,42 @@ class ImageSelectionArea extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      child: Consumer<app_provider.ImageProvider>(
-        builder: (context, provider, child) {
-          return InkWell(
-            onTap: () => _pickImages(context, provider),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.white,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          child: Consumer<app_provider.ImageProvider>(
+            builder: (context, provider, child) {
+              
+              // 计算有图片时的高度（两行，每行高度 + 间距 + padding）
+              final imageAreaHeight = provider.hasImages 
+                  ? (MediaQuery.of(context).size.width - 48 - 24) / 3 * 2 + 16 +12 // 两行高度 + 间距 + padding
+                  : 160.0;
+              
+              return InkWell(
+                onTap: () => _pickImages(context, provider),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.grey[300]!,
-                  width: 2,
-                  style: BorderStyle.solid,
+                child: Container(
+                  height: imageAreaHeight,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                      width: 2,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: provider.hasImages
+                      ? _buildImagePreview(context, provider)
+                      : _buildEmptyState(),
                 ),
-              ),
-              child: provider.hasImages
-                  ? _buildImagePreview(context, provider)
-                  : _buildEmptyState(),
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
   
@@ -73,6 +84,19 @@ class ImageSelectionArea extends StatelessWidget {
   
   // 构建图片预览
   Widget _buildImagePreview(BuildContext context, app_provider.ImageProvider provider) {
+    final imageCount = provider.images.length;
+    final maxDisplay = 6; // 最多显示6个（两行）
+    
+    // 计算要显示的item数量
+    int itemCount;
+    if (imageCount < maxDisplay) {
+      // 不满6个时，显示所有图片 + 一个"+"占位
+      itemCount = imageCount + 1;
+    } else {
+      // 超过6个时，显示前5个 + 第6个显示"+N"
+      itemCount = maxDisplay;
+    }
+    
     return Stack(
       children: [
         // 图片网格
@@ -82,71 +106,130 @@ class ImageSelectionArea extends StatelessWidget {
             crossAxisCount: 3,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
+            childAspectRatio: 1.0, // 确保宽高一致（正方形）
           ),
-          itemCount: provider.images.length > 6 ? 6 : provider.images.length,
+          itemCount: itemCount,
           itemBuilder: (context, index) {
-            if (index == 5 && provider.images.length > 6) {
-              // 显示更多
-              return Container(
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    '+${provider.images.length - 5}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              );
+            // 如果不满6个，最后一个位置显示"+"占位
+            if (imageCount < maxDisplay && index == imageCount) {
+              return _buildAddPlaceholder();
             }
             
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.file(
-                provider.images[index].originalFile,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image),
-                  );
-                },
-              ),
-            );
+            // 如果超过6个，第6个位置显示"+N"
+            if (imageCount >= maxDisplay && index == 5) {
+              return _buildMorePlaceholder(imageCount - 5);
+            }
+            
+            // 显示图片（带删除按钮）
+            return _buildImageItem(context, provider, index);
           },
         ),
         
-        // 重新选择按钮
+      ],
+    );
+  }
+  
+  // 构建"+"占位符
+  Widget _buildAddPlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 2,
+          style: BorderStyle.solid,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.add,
+          size: 32,
+          color: AppTheme.primaryOrange,
+        ),
+      ),
+    );
+  }
+  
+  // 构建"+N"占位符
+  Widget _buildMorePlaceholder(int moreCount) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          '+$moreCount',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  // 构建图片项（带删除按钮）
+  Widget _buildImageItem(
+    BuildContext context,
+    app_provider.ImageProvider provider,
+    int index,
+  ) {
+    return Stack(
+      children: [
+        // 图片
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            provider.images[index].originalFile,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Colors.grey[300],
+                child: const Icon(Icons.broken_image),
+              );
+            },
+          ),
+        ),
+        
+        // 删除按钮
         Positioned(
-          top: 8,
-          right: 8,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.refresh,
-                color: AppTheme.primaryOrange,
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: () => _removeImage(context, provider, index),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
               ),
-              onPressed: () => _pickImages(context, provider),
+              child: const Icon(
+                Icons.close,
+                size: 16,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
       ],
     );
+  }
+  
+  // 移除单张图片
+  void _removeImage(
+    BuildContext context,
+    app_provider.ImageProvider provider,
+    int index,
+  ) {
+    if (index < provider.images.length) {
+      provider.removeImage(provider.images[index].id);
+    }
   }
   
   // 选择图片

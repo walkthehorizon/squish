@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../widgets/image_compare_view.dart';
 import '../utils/theme.dart';
@@ -172,7 +171,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    currentImage.name,
+                    currentImage.truncatedName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -263,7 +262,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
     }
   }
   
-  // 保存图片
+  // 保存图片到相册
   Future<void> _saveImage() async {
     try {
       final provider = context.read<app_provider.ImageProvider>();
@@ -274,27 +273,28 @@ class _PreviewScreenState extends State<PreviewScreen> {
       final currentImage = successImages[_currentIndex];
       if (currentImage.compressedFile == null) return;
       
-      // 获取下载目录
-      final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'compressed_${DateTime.now().millisecondsSinceEpoch}_${currentImage.name}';
-      final savePath = path.join(directory.path, fileName);
-      
-      // 复制文件
-      await currentImage.compressedFile!.copy(savePath);
+      // 使用文件路径保存到相册
+      final result = await ImageGallerySaver.saveFile(
+        currentImage.compressedFile!.path,
+      );
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('已保存到: $savePath'),
-            backgroundColor: AppTheme.successColor,
-            duration: const Duration(seconds: 3),
-            action: SnackBarAction(
-              label: '确定',
-              textColor: Colors.white,
-              onPressed: () {},
+        if (result != null && result['isSuccess'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('已保存到相册'),
+              backgroundColor: AppTheme.successColor,
+              duration: Duration(seconds: 2),
             ),
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('保存失败，请检查相册权限'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

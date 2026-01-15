@@ -5,49 +5,40 @@ import '../utils/theme.dart';
 // 图片对比视图组件
 class ImageCompareView extends StatefulWidget {
   final ImageItem imageItem;
-  
-  const ImageCompareView({
-    super.key,
-    required this.imageItem,
-  });
-  
+
+  const ImageCompareView({super.key, required this.imageItem});
+
   @override
   State<ImageCompareView> createState() => _ImageCompareViewState();
 }
 
 class _ImageCompareViewState extends State<ImageCompareView> {
   double _sliderPosition = 0.5;
-  
+
   @override
   Widget build(BuildContext context) {
     if (!widget.imageItem.isSuccess) {
       return _buildErrorView();
     }
-    
+
     return Column(
       children: [
         // 对比滑块视图
-        Expanded(
-          child: _buildComparisonSlider(),
-        ),
-        
+        Expanded(child: _buildComparisonSlider()),
+
         // 信息面板
         _buildInfoPanel(),
       ],
     );
   }
-  
+
   // 构建错误视图
   Widget _buildErrorView() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppTheme.errorColor,
-          ),
+          Icon(Icons.error_outline, size: 64, color: AppTheme.errorColor),
           const SizedBox(height: 16),
           Text(
             widget.imageItem.errorMessage ?? '压缩失败',
@@ -57,7 +48,7 @@ class _ImageCompareViewState extends State<ImageCompareView> {
       ),
     );
   }
-  
+
   // 构建对比滑块
   Widget _buildComparisonSlider() {
     return GestureDetector(
@@ -76,7 +67,7 @@ class _ImageCompareViewState extends State<ImageCompareView> {
               fit: BoxFit.contain,
             ),
           ),
-          
+
           // 原始图片（顶层，根据滑块位置裁剪）
           ClipRect(
             clipper: _ImageClipper(_sliderPosition),
@@ -87,89 +78,19 @@ class _ImageCompareViewState extends State<ImageCompareView> {
               height: double.infinity,
             ),
           ),
-          
-          // 分割线和标签
-          Positioned(
-            left: MediaQuery.of(context).size.width * _sliderPosition - 2,
-            top: 0,
-            bottom: 0,
-            child: _buildDivider(),
-          ),
+
+          // // 分割线和标签
+          // Positioned(
+          //   left: MediaQuery.of(context).size.width * _sliderPosition - 2,
+          //   top: 0,
+          //   bottom: 0,
+          //   child: _buildDivider(),
+          // ),
         ],
       ),
     );
   }
-  
-  // 构建分割线
-  Widget _buildDivider() {
-    return Column(
-      children: [
-        // 顶部标签
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryOrange,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Text(
-            '原图',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        
-        // 中间分割线
-        Expanded(
-          child: Container(
-            width: 4,
-            color: AppTheme.primaryOrange,
-            child: Center(
-              child: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryOrange,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.unfold_more,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ),
-        
-        // 底部标签
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppTheme.secondaryOrange,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: const Text(
-            '压缩',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-  
+
   // 构建信息面板
   Widget _buildInfoPanel() {
     return Container(
@@ -188,14 +109,14 @@ class _ImageCompareViewState extends State<ImageCompareView> {
         children: [
           // 文件名
           Text(
-            widget.imageItem.name,
+            widget.imageItem.truncatedName,
             style: Theme.of(context).textTheme.titleMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 统计信息
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -215,7 +136,8 @@ class _ImageCompareViewState extends State<ImageCompareView> {
               _buildStatItem(
                 icon: Icons.trending_down,
                 label: '压缩率',
-                value: '${widget.imageItem.compressionRatio.toStringAsFixed(1)}%',
+                value:
+                    '${widget.imageItem.compressionRatio.toStringAsFixed(1)}%',
                 color: AppTheme.successColor,
               ),
             ],
@@ -224,7 +146,7 @@ class _ImageCompareViewState extends State<ImageCompareView> {
       ),
     );
   }
-  
+
   // 构建统计项
   Widget _buildStatItem({
     required IconData icon,
@@ -236,10 +158,7 @@ class _ImageCompareViewState extends State<ImageCompareView> {
       children: [
         Icon(icon, color: color, size: 28),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 2),
         Text(
           value,
@@ -257,14 +176,14 @@ class _ImageCompareViewState extends State<ImageCompareView> {
 // 自定义裁剪器
 class _ImageClipper extends CustomClipper<Rect> {
   final double position;
-  
+
   _ImageClipper(this.position);
-  
+
   @override
   Rect getClip(Size size) {
     return Rect.fromLTWH(0, 0, size.width * position, size.height);
   }
-  
+
   @override
   bool shouldReclip(_ImageClipper oldClipper) {
     return oldClipper.position != position;

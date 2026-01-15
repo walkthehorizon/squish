@@ -5,6 +5,7 @@ import '../models/compress_config.dart';
 import '../utils/theme.dart';
 import '../utils/constants.dart';
 import '../widgets/image_selection_area.dart';
+import 'preview_screen.dart';
 
 // 格式转换页面
 class FormatConvertScreen extends StatefulWidget {
@@ -19,11 +20,30 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        // 离开页面时清除所有已选图片
+        final provider = Provider.of<app_provider.ImageProvider>(context, listen: false);
+        provider.clearAll();
+        return true;
+      },
+      child: Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('格式转换'),
         centerTitle: true,
+        actions: [
+          Consumer<app_provider.ImageProvider>(
+            builder: (context, provider, child) {
+              if (!provider.hasImages) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.clear_all),
+                tooltip: '清除全部',
+                onPressed: () => _clearAllImages(context, provider),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -47,6 +67,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
             const SizedBox(height: 32),
           ],
         ),
+      ),
       ),
     );
   }
@@ -164,15 +185,25 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
       await provider.startCompression();
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('转换完成！'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-        
-        // 跳转到作品页
-        Navigator.pop(context);
+        // 查找第一个成功压缩的图片
+        final successImages = provider.images.where((img) => img.isSuccess).toList();
+        if (successImages.isNotEmpty) {
+          // 跳转到预览页
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PreviewScreen(imageId: successImages.first.id),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('转换完成，但没有可预览的图片'),
+              backgroundColor: AppTheme.warningColor,
+            ),
+          );
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -184,5 +215,34 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
         );
       }
     }
+  }
+  
+  // 清除全部图片
+  void _clearAllImages(
+    BuildContext context,
+    app_provider.ImageProvider provider,
+  ) {
+    if (provider.images.isEmpty) return;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清除全部'),
+        content: const Text('确定要清除所有已选择的图片吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.clearAll();
+              Navigator.pop(context);
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
   }
 }

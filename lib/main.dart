@@ -18,7 +18,7 @@ class PumpkinImageCompressApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => app_provider.ImageProvider(),
-        ),
+      ),
       ],
       child: MaterialApp(
         title: AppConstants.appName,

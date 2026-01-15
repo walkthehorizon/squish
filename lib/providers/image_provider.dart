@@ -121,13 +121,24 @@ class ImageProvider extends ChangeNotifier {
           if (compressedFile != null) {
             final compressedSize = await compressedFile.length();
             
-            // 更新为完成状态
-            _images[i] = image.copyWith(
-              compressedFile: compressedFile,
-              compressedSize: compressedSize,
-              isProcessing: false,
-              isCompleted: true,
-            );
+            // 检查体积是否变大（格式转换除外）
+            final isFormatConvert = _isFormatConvert(image.originalFile.path, compressedFile.path);
+            if (!isFormatConvert && compressedSize > image.originalSize) {
+              // 体积变大，跳过
+              _images[i] = image.copyWith(
+                isProcessing: false,
+                isCompleted: true,
+                errorMessage: '压缩后体积变大，已跳过',
+              );
+            } else {
+              // 更新为完成状态
+              _images[i] = image.copyWith(
+                compressedFile: compressedFile,
+                compressedSize: compressedSize,
+                isProcessing: false,
+                isCompleted: true,
+              );
+            }
           } else {
             // 压缩失败
             _images[i] = image.copyWith(
@@ -152,6 +163,13 @@ class ImageProvider extends ChangeNotifier {
       _isProcessing = false;
       notifyListeners();
     }
+  }
+  
+  // 判断是否为格式转换
+  bool _isFormatConvert(String originalPath, String compressedPath) {
+    final originalExt = originalPath.split('.').last.toLowerCase();
+    final compressedExt = compressedPath.split('.').last.toLowerCase();
+    return originalExt != compressedExt;
   }
   
   // 压缩单张图片

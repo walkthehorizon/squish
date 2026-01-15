@@ -55,6 +55,20 @@ class ImageItem {
     return formatFileSize(compressedSize!);
   }
   
+  // 获取截断后的文件名（最多12个字符）
+  String get truncatedName {
+    if (name.length <= 12) return name;
+    final parts = name.split('.');
+    if (parts.length < 2) {
+      // 没有扩展名
+      return '${name.substring(0, 12)}...';
+    }
+    final extension = parts.last;
+    final nameWithoutExt = name.substring(0, name.length - extension.length - 1);
+    if (nameWithoutExt.length <= 12) return name;
+    return '${nameWithoutExt.substring(0, 12)}...$extension';
+  }
+  
   // 创建副本
   ImageItem copyWith({
     String? id,
