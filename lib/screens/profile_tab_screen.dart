@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
+import 'help_manual_screen.dart';
+import 'contact_service_screen.dart';
 
 // 我的Tab
 class ProfileTabScreen extends StatelessWidget {
@@ -171,21 +173,28 @@ class ProfileTabScreen extends StatelessWidget {
             icon: Icons.help_outline,
             iconColor: Colors.blue,
             title: '帮助手册',
-            onTap: () => _showComingSoon(context),
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.feedback_outlined,
-            iconColor: Colors.pink,
-            title: '问题反馈',
-            onTap: () => _showComingSoon(context),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HelpManualScreen(),
+                ),
+              );
+            },
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.support_agent,
             iconColor: Colors.purple,
             title: '联系客服',
-            onTap: () => _showComingSoon(context),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ContactServiceScreen(),
+                ),
+              );
+            },
           ),
           _buildDivider(),
           _buildMenuItem(
@@ -220,7 +229,7 @@ class ProfileTabScreen extends StatelessWidget {
               ),
             ),
             showArrow: false,
-            onTap: null,
+            onTap: () => _showVersionToast(context),
           ),
         ],
       ),
@@ -293,11 +302,28 @@ class ProfileTabScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              _showComingSoon(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('注销成功'),
+                  backgroundColor: AppTheme.successColor,
+                  duration: Duration(seconds: 2),
+                ),
+              );
             },
             child: const Text('确定'),
           ),
         ],
+      ),
+    );
+  }
+  
+  // 显示版本Toast
+  void _showVersionToast(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('已是最新版本了'),
+        duration: Duration(seconds: 2),
+        backgroundColor: AppTheme.primaryOrange,
       ),
     );
   }
