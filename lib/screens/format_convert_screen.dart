@@ -16,7 +16,7 @@ class FormatConvertScreen extends StatefulWidget {
 }
 
 class _FormatConvertScreenState extends State<FormatConvertScreen> {
-  ImageFormat _outputFormat = ImageFormat.jpg;
+  ImageFormat _outputFormat = ImageFormat.png;
   
   @override
   Widget build(BuildContext context) {
@@ -36,10 +36,12 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
           Consumer<app_provider.ImageProvider>(
             builder: (context, provider, child) {
               if (!provider.hasImages) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.clear_all),
-                tooltip: '清除全部',
+              return TextButton(
                 onPressed: () => _clearAllImages(context, provider),
+                child: const Text(
+                  '清除',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               );
             },
           ),
@@ -79,17 +81,29 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '输出格式',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryOrange.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '输出格式',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildFormatOption('原格式', null),
               _buildFormatOption('png', ImageFormat.png),
               _buildFormatOption('jpg', ImageFormat.jpg),
               _buildFormatOption('webp', ImageFormat.webp),
@@ -101,7 +115,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
   }
   
   // 构建格式选项
-  Widget _buildFormatOption(String label, ImageFormat? format) {
+  Widget _buildFormatOption(String label, ImageFormat format) {
     final isSelected = _outputFormat == format;
     return Expanded(
       child: Padding(
@@ -109,7 +123,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
         child: InkWell(
           onTap: () {
             setState(() {
-              _outputFormat = format ?? ImageFormat.jpg;
+              _outputFormat = format;
             });
           },
           borderRadius: BorderRadius.circular(12),
@@ -198,7 +212,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('转换完成，但没有可预览的图片'),
+              content: Text('转换失败，没有可预览的图片'),
               backgroundColor: AppTheme.warningColor,
             ),
           );

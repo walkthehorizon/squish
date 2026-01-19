@@ -271,6 +271,8 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
   
   // 构建格式选择器
   Widget _buildFormatSelector() {
+    // 如果outputFormat为null，使用jpg作为默认显示
+    final displayFormat = _config.outputFormat ?? ImageFormat.jpg;
     return SegmentedButton<ImageFormat>(
       segments: const [
         ButtonSegment(
@@ -286,7 +288,7 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
           label: Text('WebP'),
         ),
       ],
-      selected: {_config.outputFormat},
+      selected: {displayFormat},
       onSelectionChanged: (Set<ImageFormat> newSelection) {
         _updateConfig(_config.copyWith(outputFormat: newSelection.first));
       },

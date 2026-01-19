@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../models/compress_config.dart';
+import '../models/image_item.dart';
 import '../utils/theme.dart';
 import '../utils/constants.dart';
-import '../widgets/image_selection_area.dart';
+import '../services/image_picker_service.dart';
+import '../services/image_compress_service.dart' as compress_service;
 import 'preview_screen.dart';
 
 // 指定尺寸页面
@@ -16,217 +19,331 @@ class ResizeCompressScreen extends StatefulWidget {
 }
 
 class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
-  ImageFormat _outputFormat = ImageFormat.jpg;
-  int _targetWidth = 1920;
-  int _targetHeight = 1080;
-  bool _useCustomSize = false;
-  
+  ImageFormat? _outputFormat; // null表示保持原格式
+  int? _targetWidth;
+  int? _targetHeight;
+  int? _originalWidth;
+  int? _originalHeight;
+  final TextEditingController _widthController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+
+  @override
+  void dispose() {
+    _widthController.dispose();
+    _heightController.dispose();
+    super.dispose();
+  }
+
+  // 选择单张图片
+  Future<void> _pickSingleImage(app_provider.ImageProvider provider) async {
+    final pickerService = ImagePickerService();
+    try {
+      final File? imageFile = await pickerService.pickSingleImage();
+      if (imageFile != null) {
+        // 指定尺寸只取第一张
+        provider.clearAll();
+        await provider.addFiles([imageFile]);
+        
+        // 获取图片尺寸
+        final dimensions = await compress_service.ImageCompressService.getImagePixelDimensions(imageFile);
+        if (dimensions != null) {
+          setState(() {
+            _originalWidth = dimensions['width'];
+            _originalHeight = dimensions['height'];
+            // 默认填充原尺寸
+            _targetWidth = _originalWidth;
+            _targetHeight = _originalHeight;
+            _widthController.text = _targetWidth.toString();
+            _heightController.text = _targetHeight.toString();
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('选择图片失败: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<app_provider.ImageProvider>(context);
+    final hasImage = provider.hasImages;
+    final selectedImage = hasImage ? provider.images.first : null;
+
     return WillPopScope(
       onWillPop: () async {
-        // 离开页面时清除所有已选图片
-        final provider = Provider.of<app_provider.ImageProvider>(context, listen: false);
         provider.clearAll();
         return true;
       },
       child: Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('照片压缩'),
-        centerTitle: true,
-        actions: [
-          Consumer<app_provider.ImageProvider>(
-            builder: (context, provider, child) {
-              if (!provider.hasImages) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.clear_all),
-                tooltip: '清除全部',
-                onPressed: () => _clearAllImages(context, provider),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            
-            // 图片选择区域
-            const ImageSelectionArea(),
-            
-            const SizedBox(height: 24),
-            
-            // 自定义像素
-            _buildCustomSizeSection(),
-            
-            const SizedBox(height: 24),
-            
-            // 输出格式
-            _buildFormatSection(),
-            
-            const SizedBox(height: 32),
-            
-            // 开始压缩按钮
-            _buildCompressButton(),
-            
-            const SizedBox(height: 32),
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: AppBar(
+          title: const Text('指定尺寸'),
+          centerTitle: true,
+          actions: [
+            if (hasImage)
+              TextButton(
+                onPressed: () {
+                  provider.clearAll();
+                  setState(() {
+                    _originalWidth = null;
+                    _originalHeight = null;
+                    _widthController.clear();
+                    _heightController.clear();
+                  });
+                },
+                child: const Text(
+                  '清除',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
           ],
         ),
-      ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              
+              // 图片选择/显示区域
+              _buildImageArea(provider, selectedImage),
+              
+              const SizedBox(height: 24),
+              
+              // 自定义像素区域
+              _buildPixelSection(),
+              
+              const SizedBox(height: 24),
+              
+              // 输出格式
+              _buildFormatSection(),
+              
+              const SizedBox(height: 32),
+              
+              // 开始压缩按钮
+              _buildCompressButton(provider),
+              
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
       ),
     );
   }
-  
-  // 构建自定义尺寸区域
-  Widget _buildCustomSizeSection() {
+
+  // 构建图片显示区域
+  Widget _buildImageArea(app_provider.ImageProvider provider, ImageItem? image) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      width: double.infinity,
+      height: 260,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: image == null
+          ? InkWell(
+              onTap: () => _pickSingleImage(provider),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Opacity(
+                    opacity: 0.8,
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 120,
+                      color: AppTheme.primaryOrange.withOpacity(0.2),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.primaryOrange.withOpacity(0.6), AppTheme.primaryOrange],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 40),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '请选取图片',
+                    style: TextStyle(color: AppTheme.primaryOrange, fontSize: 16),
+                  ),
+                ],
+              ),
+            )
+          : Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Center(
+                    child: Image.file(
+                      File(image.originalFile.path),
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: GestureDetector(
+                    onTap: () => _pickSingleImage(provider),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFB380), Color(0xFFFF7043)],
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.add, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  // 构建像素输入区域
+  Widget _buildPixelSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '自定义像素',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _useCustomSize = false;
-                            _targetWidth = 1920;
-                            _targetHeight = 1080;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: !_useCustomSize ? AppTheme.lightOrange : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: !_useCustomSize ? AppTheme.primaryOrange : Colors.grey[300]!,
-                              width: !_useCustomSize ? 2 : 1,
-                            ),
-                          ),
-                          child: Text(
-                            '指定\n宽度',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: !_useCustomSize ? FontWeight.bold : FontWeight.normal,
-                              color: !_useCustomSize ? AppTheme.primaryOrange : AppTheme.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _useCustomSize = false;
-                            _targetWidth = 1920;
-                            _targetHeight = 1080;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '像素',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _useCustomSize = false;
-                            _targetWidth = 1920;
-                            _targetHeight = 1080;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '指定\n高度',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _useCustomSize = false;
-                            _targetWidth = 1920;
-                            _targetHeight = 1080;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '像素',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryOrange.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '自定义像素',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              if (_originalWidth != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '原图 $_originalWidth*$_originalHeight',
+                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                 ),
               ],
-            ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputBox(
+                  '指定宽度',
+                  _widthController,
+                  _originalWidth != null ? '1~$_originalWidth' : '',
+                  (val) {
+                    final intValue = int.tryParse(val);
+                    if (intValue != null && _originalWidth != null) {
+                      if (intValue > _originalWidth!) {
+                        _widthController.text = _originalWidth.toString();
+                        _targetWidth = _originalWidth;
+                      } else {
+                        _targetWidth = intValue;
+                      }
+                    } else {
+                      _targetWidth = intValue;
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildInputBox(
+                  '指定高度',
+                  _heightController,
+                  _originalHeight != null ? '1~$_originalHeight' : '',
+                  (val) {
+                    final intValue = int.tryParse(val);
+                    if (intValue != null && _originalHeight != null) {
+                      if (intValue > _originalHeight!) {
+                        _heightController.text = _originalHeight.toString();
+                        _targetHeight = _originalHeight;
+                      } else {
+                        _targetHeight = intValue;
+                      }
+                    } else {
+                      _targetHeight = intValue;
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-  
+
+  Widget _buildInputBox(String label, TextEditingController controller, String hint, Function(String) onChanged) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  onChanged: onChanged,
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    hintStyle: const TextStyle(color: AppTheme.textSecondary),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Text('像素', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   // 构建格式选择区域
   Widget _buildFormatSection() {
     return Padding(
@@ -234,12 +351,22 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '输出格式',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryOrange.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '输出格式',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Row(
@@ -254,7 +381,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       ),
     );
   }
-  
+
   // 构建格式选项
   Widget _buildFormatOption(String label, ImageFormat? format) {
     final isSelected = _outputFormat == format;
@@ -264,7 +391,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
         child: InkWell(
           onTap: () {
             setState(() {
-              _outputFormat = format ?? ImageFormat.jpg;
+              _outputFormat = format;
             });
           },
           borderRadius: BorderRadius.circular(12),
@@ -292,49 +419,65 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       ),
     );
   }
-  
+
   // 构建压缩按钮
-  Widget _buildCompressButton() {
+  Widget _buildCompressButton(app_provider.ImageProvider provider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Consumer<app_provider.ImageProvider>(
-        builder: (context, provider, child) {
-          return SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: provider.hasImages && !provider.isProcessing
-                  ? () => _startCompress(provider)
+      child: SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: provider.hasImages && !provider.isProcessing
+              ? () => _startCompress(provider)
+              : null,
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25),
+            ),
+          ).copyWith(
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.disabled)) return Colors.grey[300];
+              return null; // 使用主题色
+            }),
+          ),
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: provider.hasImages && !provider.isProcessing
+                  ? const LinearGradient(colors: [Color(0xFFFFB380), Color(0xFFFF7043)])
                   : null,
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Container(
+              alignment: Alignment.center,
               child: Text(
-                provider.isProcessing ? '压缩中...' : '开始压缩',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                provider.isProcessing ? '处理中...' : '开始压缩',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
-  
+
   // 开始压缩
   Future<void> _startCompress(app_provider.ImageProvider provider) async {
+    if (_targetWidth == null || _targetHeight == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入目标尺寸')),
+      );
+      return;
+    }
+
     final config = CompressConfig(
       mode: CompressMode.resize,
-      targetWidth: _targetWidth,
-      targetHeight: _targetHeight,
-      quality: 85,
+      quality: 90,
+      targetWidth: _targetWidth!,
+      targetHeight: _targetHeight!,
       outputFormat: _outputFormat,
-      fitMode: FitMode.contain,
-      showPreview: false,
+      fitMode: FitMode.fill,
     );
     
     provider.updateConfig(config);
@@ -343,10 +486,8 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       await provider.startCompression();
       
       if (mounted) {
-        // 查找第一个成功压缩的图片
         final successImages = provider.images.where((img) => img.isSuccess).toList();
         if (successImages.isNotEmpty) {
-          // 跳转到预览页
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -354,9 +495,10 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
             ),
           );
         } else {
+          final hasSkipped = provider.images.any((img) => img.errorMessage == '压缩后体积变大，已跳过');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('压缩完成，但没有可预览的图片'),
+            SnackBar(
+              content: Text(hasSkipped ? '压缩后体积未减小，已自动跳过' : '压缩失败，没有可预览的图片'),
               backgroundColor: AppTheme.warningColor,
             ),
           );
@@ -367,40 +509,11 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('压缩失败: $e'),
+            content: Text('操作失败: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
       }
     }
-  }
-  
-  // 清除全部图片
-  void _clearAllImages(
-    BuildContext context,
-    app_provider.ImageProvider provider,
-  ) {
-    if (provider.images.isEmpty) return;
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('清除全部'),
-        content: const Text('确定要清除所有已选择的图片吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              provider.clearAll();
-              Navigator.pop(context);
-            },
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
   }
 }

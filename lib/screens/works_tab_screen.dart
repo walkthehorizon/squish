@@ -20,10 +20,12 @@ class WorksTabScreen extends StatelessWidget {
           Consumer<app_provider.ImageProvider>(
             builder: (context, provider, child) {
               if (!provider.hasImages) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.delete_outline),
+              return TextButton(
                 onPressed: () => _showClearDialog(context, provider),
-                tooltip: '清空记录',
+                child: const Text(
+                  '清除',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               );
             },
           ),

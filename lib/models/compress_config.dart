@@ -7,7 +7,7 @@ class CompressConfig {
   final double scaleRatio; // 缩放比例 0-1
   final int targetWidth; // 目标宽度
   final int targetHeight; // 目标高度
-  final ImageFormat outputFormat; // 输出格式
+  final ImageFormat? outputFormat; // 输出格式，null表示保持原格式
   final FitMode fitMode; // 填充模式
   final bool showPreview; // 是否显示预览
   
@@ -17,7 +17,7 @@ class CompressConfig {
     this.scaleRatio = AppConstants.defaultScaleRatio,
     this.targetWidth = AppConstants.defaultWidth,
     this.targetHeight = AppConstants.defaultHeight,
-    this.outputFormat = ImageFormat.jpg,
+    this.outputFormat, // 默认为null，表示保持原格式
     this.fitMode = FitMode.contain,
     this.showPreview = true,
   });
@@ -59,7 +59,8 @@ class CompressConfig {
   
   // 获取格式名称
   String get formatName {
-    switch (outputFormat) {
+    if (outputFormat == null) return '原格式';
+    switch (outputFormat!) {
       case ImageFormat.jpg:
         return 'JPG';
       case ImageFormat.png:
@@ -69,9 +70,10 @@ class CompressConfig {
     }
   }
   
-  // 获取格式扩展名
+  // 获取格式扩展名（如果为null，返回空字符串，由服务层根据原图判断）
   String get formatExtension {
-    switch (outputFormat) {
+    if (outputFormat == null) return '';
+    switch (outputFormat!) {
       case ImageFormat.jpg:
         return 'jpg';
       case ImageFormat.png:
@@ -80,6 +82,9 @@ class CompressConfig {
         return 'webp';
     }
   }
+  
+  // 是否保持原格式
+  bool get keepOriginalFormat => outputFormat == null;
   
   // 获取填充模式名称
   String get fitModeName {

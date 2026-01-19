@@ -16,7 +16,7 @@ class ScaleCompressScreen extends StatefulWidget {
 }
 
 class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
-  ImageFormat _outputFormat = ImageFormat.jpg;
+  ImageFormat? _outputFormat; // null表示保持原格式
   double _scaleRatio = 1.0;
   
   @override
@@ -31,16 +31,18 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
       child: Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('照片压缩'),
+        title: const Text('等比缩放'),
         centerTitle: true,
         actions: [
           Consumer<app_provider.ImageProvider>(
             builder: (context, provider, child) {
               if (!provider.hasImages) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.clear_all),
-                tooltip: '清除全部',
+              return TextButton(
                 onPressed: () => _clearAllImages(context, provider),
+                child: const Text(
+                  '清除',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               );
             },
           ),
@@ -88,12 +90,25 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '尺寸比例',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryOrange.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '尺寸比例',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -159,12 +174,25 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '输出格式',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryOrange.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '输出格式',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Row(
@@ -189,7 +217,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
         child: InkWell(
           onTap: () {
             setState(() {
-              _outputFormat = format ?? ImageFormat.jpg;
+              _outputFormat = format; // null表示保持原格式
             });
           },
           borderRadius: BorderRadius.circular(12),
@@ -277,9 +305,11 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
             ),
           );
         } else {
+          // 检查是否有因为体积变大被跳过的
+          final hasSkipped = provider.images.any((img) => img.errorMessage == '压缩后体积变大，已跳过');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('压缩完成，但没有可预览的图片'),
+            SnackBar(
+              content: Text(hasSkipped ? '压缩后体积未减小，已自动跳过' : '压缩失败，没有可预览的图片'),
               backgroundColor: AppTheme.warningColor,
             ),
           );

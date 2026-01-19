@@ -47,7 +47,7 @@ class ImageCompressService {
         quality: config.quality.toInt(),
         minWidth: newWidth,
         minHeight: newHeight,
-        format: _getCompressFormat(config.outputFormat),
+        format: _getCompressFormat(config.outputFormat, imageFile),
       );
       
       return result != null ? File(result.path) : null;
@@ -96,17 +96,19 @@ class ImageCompressService {
       final outputPath = await _generateOutputPath(imageFile, config);
       final outputFile = File(outputPath);
       
+      // 确定输出格式
+      final targetFormat = config.outputFormat ?? _getFormatFromFile(imageFile);
+      
       List<int> encoded;
-      switch (config.outputFormat) {
-        case ImageFormat.jpg:
-          encoded = img.encodeJpg(resized, quality: config.quality.toInt());
-          break;
-        case ImageFormat.png:
-          encoded = img.encodePng(resized, level: 6);
-          break;
-        case ImageFormat.webp:
-          encoded = img.encodeJpg(resized, quality: config.quality.toInt());
-          break;
+      if (targetFormat == ImageFormat.jpg) {
+        encoded = img.encodeJpg(resized, quality: config.quality.toInt());
+      } else if (targetFormat == ImageFormat.png) {
+        encoded = img.encodePng(resized, level: 6);
+      } else if (targetFormat == ImageFormat.webp) {
+        encoded = img.encodeJpg(resized, quality: config.quality.toInt());
+      } else {
+        // 默认使用jpg
+        encoded = img.encodeJpg(resized, quality: config.quality.toInt());
       }
       
       await outputFile.writeAsBytes(encoded);
@@ -155,7 +157,7 @@ class ImageCompressService {
         quality: quality,
         minWidth: newWidth,
         minHeight: newHeight,
-        format: _getCompressFormat(config.outputFormat),
+        format: _getCompressFormat(config.outputFormat, imageFile),
       );
       
       return result != null ? File(result.path) : null;
@@ -169,7 +171,15 @@ class ImageCompressService {
     final tempDir = await getTemporaryDirectory();
     final originalName = path.basenameWithoutExtension(imageFile.path);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final extension = config.formatExtension;
+    
+    // 如果保持原格式，使用原图扩展名
+    String extension;
+    if (config.keepOriginalFormat) {
+      extension = path.extension(imageFile.path).replaceFirst('.', '');
+      if (extension.isEmpty) extension = 'jpg'; // 默认
+    } else {
+      extension = config.formatExtension;
+    }
     
     return path.join(
       tempDir.path,
@@ -177,22 +187,50 @@ class ImageCompressService {
     );
   }
   
-  // 获取压缩格式
-  CompressFormat _getCompressFormat(ImageFormat format) {
-    switch (format) {
-      case ImageFormat.jpg:
-        return CompressFormat.jpeg;
-      case ImageFormat.png:
-        return CompressFormat.png;
-      case ImageFormat.webp:
-        return CompressFormat.webp;
+  // 获取压缩格式（如果为null，根据原图格式判断）
+  CompressFormat _getCompressFormat(ImageFormat? format, File? imageFile) {
+    if (format != null) {
+      switch (format) {
+        case ImageFormat.jpg:
+          return CompressFormat.jpeg;
+        case ImageFormat.png:
+          return CompressFormat.png;
+        case ImageFormat.webp:
+          return CompressFormat.webp;
+      }
     }
+    
+    // 如果为null，根据原图格式判断
+    if (imageFile != null) {
+      final ext = path.extension(imageFile.path).toLowerCase();
+      if (ext == '.png') {
+        return CompressFormat.png;
+      } else if (ext == '.webp') {
+        return CompressFormat.webp;
+      }
+    }
+    
+    // 默认使用jpg
+    return CompressFormat.jpeg;
+  }
+  
+  // 根据文件路径获取格式
+  ImageFormat? _getFormatFromFile(File imageFile) {
+    final ext = path.extension(imageFile.path).toLowerCase();
+    if (ext == '.png') {
+      return ImageFormat.png;
+    } else if (ext == '.webp') {
+      return ImageFormat.webp;
+    } else if (ext == '.jpg' || ext == '.jpeg') {
+      return ImageFormat.jpg;
+    }
+    return ImageFormat.jpg; // 默认
   }
   
   // 获取图片尺寸
-  Future<Map<String, int>?> getImageDimensions(File imageFile) async {
+  static Future<Map<String, int>?> getImagePixelDimensions(File file) async {
     try {
-      final bytes = await imageFile.readAsBytes();
+      final bytes = await file.readAsBytes();
       final image = img.decodeImage(bytes);
       if (image == null) return null;
       

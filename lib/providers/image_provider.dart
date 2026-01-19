@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import '../models/image_item.dart';
@@ -50,33 +51,37 @@ class ImageProvider extends ChangeNotifier {
     try {
       final files = await _pickerService.pickMultipleImages();
       if (files == null || files.isEmpty) return;
-      
-      for (final file in files) {
-        // 检查格式
-        if (!_pickerService.isSupportedFormat(file.path)) {
-          continue;
-        }
-        
-        // 获取文件信息
-        final name = path.basename(file.path);
-        final size = await _pickerService.getFileSize(file);
-        
-        // 创建图片项
-        final imageItem = ImageItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString() + _images.length.toString(),
-          originalFile: file,
-          name: name,
-          originalSize: size,
-        );
-        
-        _images.add(imageItem);
-      }
-      
-      notifyListeners();
+      await addFiles(files);
     } catch (e) {
       debugPrint('添加图片失败: $e');
       rethrow;
     }
+  }
+
+  // 手动添加已选文件
+  Future<void> addFiles(List<File> files) async {
+    for (final file in files) {
+      // 检查格式
+      if (!_pickerService.isSupportedFormat(file.path)) {
+        continue;
+      }
+      
+      // 获取文件信息
+      final name = path.basename(file.path);
+      final size = await _pickerService.getFileSize(file);
+      
+      // 创建图片项
+      final imageItem = ImageItem(
+        id: DateTime.now().millisecondsSinceEpoch.toString() + _images.length.toString(),
+        originalFile: file,
+        name: name,
+        originalSize: size,
+      );
+      
+      _images.add(imageItem);
+    }
+    
+    notifyListeners();
   }
   
   // 移除图片
