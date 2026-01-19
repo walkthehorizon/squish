@@ -52,12 +52,18 @@ class _ImageCompareViewState extends State<ImageCompareView> {
   // 构建对比滑块
   Widget _buildComparisonSlider() {
     return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        setState(() {
-          _sliderPosition += details.delta.dx / context.size!.width;
-          _sliderPosition = _sliderPosition.clamp(0.0, 1.0);
-        });
+      // 使用 onPanUpdate 代替 onHorizontalDragUpdate，并限制只在中间区域有效
+      onPanUpdate: (details) {
+        // 只有在垂直移动距离很小时才认为是横向拖动对比滑块
+        if (details.delta.dy.abs() < 5) {
+          setState(() {
+            _sliderPosition += details.delta.dx / context.size!.width;
+            _sliderPosition = _sliderPosition.clamp(0.0, 1.0);
+          });
+        }
       },
+      // 允许事件向上传递，让 PageView 也能接收到手势
+      behavior: HitTestBehavior.translucent,
       child: Stack(
         children: [
           // 压缩后的图片（底层）
@@ -78,14 +84,6 @@ class _ImageCompareViewState extends State<ImageCompareView> {
               height: double.infinity,
             ),
           ),
-
-          // // 分割线和标签
-          // Positioned(
-          //   left: MediaQuery.of(context).size.width * _sliderPosition - 2,
-          //   top: 0,
-          //   bottom: 0,
-          //   child: _buildDivider(),
-          // ),
         ],
       ),
     );
@@ -105,42 +103,26 @@ class _ImageCompareViewState extends State<ImageCompareView> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // 文件名
-          Text(
-            widget.imageItem.truncatedName,
-            style: Theme.of(context).textTheme.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          _buildStatItem(
+            icon: Icons.photo,
+            label: '原始大小',
+            value: widget.imageItem.originalSizeText,
+            color: AppTheme.textSecondary,
           ),
-
-          const SizedBox(height: 16),
-
-          // 统计信息
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem(
-                icon: Icons.photo,
-                label: '原始大小',
-                value: widget.imageItem.originalSizeText,
-                color: AppTheme.textSecondary,
-              ),
-              _buildStatItem(
-                icon: Icons.compress,
-                label: '压缩后',
-                value: widget.imageItem.compressedSizeText,
-                color: AppTheme.primaryOrange,
-              ),
-              _buildStatItem(
-                icon: Icons.trending_down,
-                label: '压缩率',
-                value:
-                    '${widget.imageItem.compressionRatio.toStringAsFixed(1)}%',
-                color: AppTheme.successColor,
-              ),
-            ],
+          _buildStatItem(
+            icon: Icons.compress,
+            label: '压缩后',
+            value: widget.imageItem.compressedSizeText,
+            color: AppTheme.primaryOrange,
+          ),
+          _buildStatItem(
+            icon: Icons.trending_down,
+            label: '压缩率',
+            value: '${widget.imageItem.compressionRatio.toStringAsFixed(1)}%',
+            color: AppTheme.successColor,
           ),
         ],
       ),

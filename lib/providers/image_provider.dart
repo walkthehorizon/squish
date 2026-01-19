@@ -3,8 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import '../models/image_item.dart';
 import '../models/compress_config.dart';
+import '../models/compress_history_item.dart';
 import '../services/image_picker_service.dart';
 import '../services/image_compress_service.dart';
+import '../services/storage_service.dart';
+import '../utils/works_refresh_notifier.dart';
 
 // 图片状态管理Provider
 class ImageProvider extends ChangeNotifier {
@@ -97,6 +100,32 @@ class ImageProvider extends ChangeNotifier {
     notifyListeners();
   }
   
+  // 从历史记录加载图片（用于预览历史压缩记录）
+  void loadFromHistory(List<CompressHistoryItem> historyList) {
+    _images.clear();
+    _processedCount = 0;
+    
+    for (final history in historyList) {
+      final compressedFile = File(history.compressedFilePath);
+      // 只加载文件仍然存在的记录
+      if (compressedFile.existsSync()) {
+        final imageItem = ImageItem(
+          id: history.id,
+          originalFile: compressedFile, // 历史记录中没有原图，用压缩后的作为原图
+          name: history.name,
+          originalSize: history.originalSize,
+          compressedFile: compressedFile,
+          compressedSize: history.compressedSize,
+          isProcessing: false,
+          isCompleted: true,
+        );
+        _images.add(imageItem);
+      }
+    }
+    
+    notifyListeners();
+  }
+  
   // 开始批量压缩
   Future<void> startCompression() async {
     if (_images.isEmpty || _isProcessing) return;
@@ -126,14 +155,15 @@ class ImageProvider extends ChangeNotifier {
           if (compressedFile != null) {
             final compressedSize = await compressedFile.length();
             
-            // 检查体积是否变大（格式转换除外）
+            // 检查体积是否变大或不变（格式转换除外）
             final isFormatConvert = _isFormatConvert(image.originalFile.path, compressedFile.path);
-            if (!isFormatConvert && compressedSize > image.originalSize) {
-              // 体积变大，跳过
+            if (!isFormatConvert && compressedSize >= image.originalSize) {
+              // 体积变大或不变，使用原图
               _images[i] = image.copyWith(
+                compressedFile: image.originalFile,
+                compressedSize: image.originalSize,
                 isProcessing: false,
                 isCompleted: true,
-                errorMessage: '压缩后体积变大，已跳过',
               );
             } else {
               // 更新为完成状态
@@ -167,6 +197,12 @@ class ImageProvider extends ChangeNotifier {
     } finally {
       _isProcessing = false;
       notifyListeners();
+      
+      // 保存成功的压缩记录到本地
+      await StorageService.saveCompressHistory(_images);
+      
+      // 通知作品页刷新
+      WorksRefreshNotifier().notifyRefresh();
     }
   }
   

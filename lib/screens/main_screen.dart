@@ -7,33 +7,42 @@ import '../utils/theme.dart';
 // 主页面 - 包含底部导航的三个Tab
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
-  
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  
-  final List<Widget> _pages = [
-    const HomeTabScreen(),
-    const WorksTabScreen(),
-    const ProfileTabScreen(),
-  ];
-  
+  final GlobalKey<WorksTabScreenState> _worksTabKey =
+      GlobalKey<WorksTabScreenState>();
+
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const HomeTabScreen(),
+      WorksTabScreen(key: _worksTabKey),
+      const ProfileTabScreen(),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
+          // 切换到作品页时刷新数据
+          if (index == 1) {
+            _worksTabKey.currentState?.refreshHistory();
+          }
         },
         selectedItemColor: AppTheme.primaryOrange,
         unselectedItemColor: Colors.grey[400],

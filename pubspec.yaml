@@ -58,6 +58,9 @@ dependencies:
   
   # URL启动器
   url_launcher: ^6.2.5
+  
+  # 本地存储
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/image_provider.dart' as app_provider;
-import 'screens/main_screen.dart';
+import 'screens/splash_screen.dart';
 import 'utils/theme.dart';
 import 'utils/constants.dart';
 
@@ -24,7 +24,7 @@ class PumpkinImageCompressApp extends StatelessWidget {
         title: AppConstants.appName,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const MainScreen(),
+        home: const SplashScreen(),
       ),
     );
   }
