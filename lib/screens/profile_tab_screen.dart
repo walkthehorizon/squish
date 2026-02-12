@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/locale_provider.dart';
 import '../utils/theme.dart';
 import 'help_manual_screen.dart';
 import 'contact_service_screen.dart';
@@ -7,13 +10,14 @@ import 'web_view_screen.dart';
 // 我的Tab
 class ProfileTabScreen extends StatelessWidget {
   const ProfileTabScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('我的'),
+        title: Text(l10n.profileTitle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -21,8 +25,7 @@ class ProfileTabScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
             
-            // 头像和标题
-            _buildHeader(),
+            _buildHeader(context),
             
             const SizedBox(height: 20),
             
@@ -39,11 +42,9 @@ class ProfileTabScreen extends StatelessWidget {
     );
   }
   
-  // 构建头部
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Column(
       children: [
-        // 头像
         Container(
           width: 80,
           height: 80,
@@ -69,9 +70,9 @@ class ProfileTabScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          '照片压缩',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).photoCompress,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -79,9 +80,10 @@ class ProfileTabScreen extends StatelessWidget {
       ],
     );
   }
-  
+
   // 构建VIP卡片
   Widget _buildVipCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -117,22 +119,22 @@ class ProfileTabScreen extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           // 文字
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '普通用户',
-                  style: TextStyle(
+                  l10n.normalUser,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '免费使用所有功能',
-                  style: TextStyle(
+                  l10n.freeAllFeatures,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppTheme.textSecondary,
                   ),
@@ -140,15 +142,14 @@ class ProfileTabScreen extends StatelessWidget {
               ],
             ),
           ),
-          // 按钮
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
               color: AppTheme.primaryOrange,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              '欢迎您',
+            child: Text(
+              l10n.welcome,
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -162,6 +163,7 @@ class ProfileTabScreen extends StatelessWidget {
   
   // 构建功能列表
   Widget _buildFunctionList(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -171,9 +173,30 @@ class ProfileTabScreen extends StatelessWidget {
       child: Column(
         children: [
           _buildMenuItem(
+            icon: Icons.language,
+            iconColor: Colors.teal,
+            title: l10n.language,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.watch<LocaleProvider>().locale.languageCode == 'zh'
+                      ? l10n.languageChinese
+                      : l10n.languageEnglish,
+                  style: const TextStyle(color: AppTheme.textSecondary),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right, color: AppTheme.textHint),
+              ],
+            ),
+            showArrow: false,
+            onTap: () => _showLanguageDialog(context, l10n),
+          ),
+          _buildDivider(),
+          _buildMenuItem(
             icon: Icons.help_outline,
             iconColor: Colors.blue,
-            title: '帮助手册',
+            title: l10n.helpManual,
             onTap: () {
               Navigator.push(
                 context,
@@ -187,7 +210,7 @@ class ProfileTabScreen extends StatelessWidget {
           _buildMenuItem(
             icon: Icons.support_agent,
             iconColor: Colors.purple,
-            title: '联系客服',
+            title: l10n.contactUs,
             onTap: () {
               Navigator.push(
                 context,
@@ -201,58 +224,97 @@ class ProfileTabScreen extends StatelessWidget {
           _buildMenuItem(
             icon: Icons.description_outlined,
             iconColor: Colors.orange,
-            title: '用户协议',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WebViewScreen(
-                  title: '用户协议',
-                  assetPath: 'assets/html/user_agreement.html',
+            title: l10n.userAgreement,
+            onTap: () {
+              final locale = context.read<LocaleProvider>().locale;
+              final path = locale.languageCode == 'zh'
+                  ? 'assets/html/user_agreement.html'
+                  : 'assets/html/user_agreement_en.html';
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    title: l10n.userAgreement,
+                    assetPath: path,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.privacy_tip_outlined,
             iconColor: Colors.red,
-            title: '隐私政策',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WebViewScreen(
-                  title: '隐私政策',
-                  assetPath: 'assets/html/privacy_policy.html',
+            title: l10n.privacyPolicy,
+            onTap: () {
+              final locale = context.read<LocaleProvider>().locale;
+              final path = locale.languageCode == 'zh'
+                  ? 'assets/html/privacy_policy.html'
+                  : 'assets/html/privacy_policy_en.html';
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WebViewScreen(
+                    title: l10n.privacyPolicy,
+                    assetPath: path,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.person_remove_outlined,
             iconColor: Colors.grey,
-            title: '账户注销',
-            onTap: () => _showLogoutDialog(context),
+            title: l10n.accountLogout,
+            onTap: () => _showLogoutDialog(context, l10n),
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.info_outline,
             iconColor: Colors.amber,
-            title: '当前版本',
+            title: l10n.currentVersion,
             trailing: const Text(
               'v1.0.0',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-              ),
+              style: TextStyle(color: AppTheme.textSecondary),
             ),
             showArrow: false,
-            onTap: () => _showVersionToast(context),
+            onTap: () => _showVersionToast(context, l10n.alreadyLatest),
           ),
         ],
       ),
     );
   }
-  
+
+  void _showLanguageDialog(BuildContext context, AppLocalizations l10n) {
+    final localeProvider = context.read<LocaleProvider>();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.language),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(l10n.languageEnglish),
+              onTap: () {
+                localeProvider.setLocale(const Locale('en'));
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              title: Text(l10n.languageChinese),
+              onTap: () {
+                localeProvider.setLocale(const Locale('zh'));
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // 构建菜单项
   Widget _buildMenuItem({
     required IconData icon,
@@ -294,42 +356,40 @@ class ProfileTabScreen extends StatelessWidget {
     );
   }
   
-  // 显示注销对话框
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('账户注销'),
-        content: const Text('确定要注销账户吗？'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.logoutConfirm),
+        content: Text(l10n.logoutConfirmContent),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('注销成功'),
+                SnackBar(
+                  content: Text(l10n.logoutSuccess),
                   backgroundColor: AppTheme.successColor,
-                  duration: Duration(seconds: 2),
+                  duration: const Duration(seconds: 2),
                 ),
               );
             },
-            child: const Text('确定'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
     );
   }
-  
-  // 显示版本Toast
-  void _showVersionToast(BuildContext context) {
+
+  void _showVersionToast(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('已是最新版本了'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
         backgroundColor: AppTheme.primaryOrange,
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/compress_config.dart';
 import '../utils/constants.dart';
 import '../utils/theme.dart';
@@ -41,39 +42,26 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 压缩模式选择
-          _buildSectionTitle('压缩模式'),
+          _buildSectionTitle(AppLocalizations.of(context).compressMode),
           _buildCompressMode(),
-          
           const SizedBox(height: 24),
-          
-          // 质量调节
-          _buildSectionTitle('压缩质量'),
+          _buildSectionTitle(AppLocalizations.of(context).compressQuality),
           _buildQualitySlider(),
-          
           const SizedBox(height: 24),
-          
-          // 根据模式显示不同的配置
           if (_config.mode == CompressMode.scale) ...[
-            _buildSectionTitle('缩放比例'),
+            _buildSectionTitle(AppLocalizations.of(context).scaleRatio),
             _buildScaleSlider(),
           ] else if (_config.mode == CompressMode.resize) ...[
-            _buildSectionTitle('目标尺寸'),
+            _buildSectionTitle(AppLocalizations.of(context).targetSize),
             _buildSizeInputs(),
             const SizedBox(height: 16),
-            _buildSectionTitle('填充模式'),
+            _buildSectionTitle(AppLocalizations.of(context).fillMode),
             _buildFitMode(),
           ],
-          
           const SizedBox(height: 24),
-          
-          // 输出格式
-          _buildSectionTitle('输出格式'),
+          _buildSectionTitle(AppLocalizations.of(context).outputFormat),
           _buildFormatSelector(),
-          
           const SizedBox(height: 24),
-          
-          // 预览开关
           _buildPreviewSwitch(),
         ],
       ),
@@ -96,22 +84,23 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
   
   // 构建压缩模式选择
   Widget _buildCompressMode() {
+    final l10n = AppLocalizations.of(context);
     return SegmentedButton<CompressMode>(
-      segments: const [
+      segments: [
         ButtonSegment(
           value: CompressMode.scale,
-          label: Text('等比压缩'),
-          icon: Icon(Icons.aspect_ratio),
+          label: Text(l10n.scaleTitle),
+          icon: const Icon(Icons.aspect_ratio),
         ),
         ButtonSegment(
           value: CompressMode.resize,
-          label: Text('指定尺寸'),
-          icon: Icon(Icons.crop),
+          label: Text(l10n.resizeTitle),
+          icon: const Icon(Icons.crop),
         ),
         ButtonSegment(
           value: CompressMode.smart,
-          label: Text('智能压缩'),
-          icon: Icon(Icons.auto_awesome),
+          label: Text(l10n.presetSmart),
+          icon: const Icon(Icons.auto_awesome),
         ),
       ],
       selected: {_config.mode},
@@ -129,7 +118,7 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('质量等级'),
+            Text(AppLocalizations.of(context).qualityLevel),
             Text(
               '${_config.quality.toInt()}%',
               style: const TextStyle(
@@ -152,8 +141,8 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('低质量', style: Theme.of(context).textTheme.bodySmall),
-            Text('高质量', style: Theme.of(context).textTheme.bodySmall),
+            Text(AppLocalizations.of(context).lowQuality, style: Theme.of(context).textTheme.bodySmall),
+            Text(AppLocalizations.of(context).highQuality, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ],
@@ -167,7 +156,7 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('缩放比例'),
+            Text(AppLocalizations.of(context).scaleRatio),
             Text(
               '${(_config.scaleRatio * 100).toInt()}%',
               style: const TextStyle(
@@ -197,8 +186,8 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
       children: [
         Expanded(
           child: TextField(
-            decoration: const InputDecoration(
-              labelText: '宽度',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).width,
               suffixText: 'px',
             ),
             keyboardType: TextInputType.number,
@@ -216,8 +205,8 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
         const SizedBox(width: 16),
         Expanded(
           child: TextField(
-            decoration: const InputDecoration(
-              labelText: '高度',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).height,
               suffixText: 'px',
             ),
             keyboardType: TextInputType.number,
@@ -259,13 +248,14 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
   }
   
   String _getFitModeName(FitMode mode) {
+    final l10n = AppLocalizations.of(context);
     switch (mode) {
       case FitMode.contain:
-        return '包含（留白）';
+        return l10n.fitContain;
       case FitMode.cover:
-        return '覆盖（裁剪）';
+        return l10n.fitCover;
       case FitMode.fill:
-        return '拉伸填充';
+        return l10n.fitFill;
     }
   }
   
@@ -296,11 +286,11 @@ class _CompressConfigPanelState extends State<CompressConfigPanel> {
     );
   }
   
-  // 构建预览开关
   Widget _buildPreviewSwitch() {
+    final l10n = AppLocalizations.of(context);
     return SwitchListTile(
-      title: const Text('显示对比预览'),
-      subtitle: const Text('压缩完成后显示原图与压缩图对比'),
+      title: Text(l10n.showPreview),
+      subtitle: Text(l10n.showPreviewSub),
       value: _config.showPreview,
       onChanged: (value) {
         _updateConfig(_config.copyWith(showPreview: value));

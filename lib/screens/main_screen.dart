@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_tab_screen.dart';
 import 'works_tab_screen.dart';
 import 'profile_tab_screen.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme.dart';
 
 // 主页面 - 包含底部导航的三个Tab
@@ -31,6 +32,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
@@ -39,7 +41,6 @@ class _MainScreenState extends State<MainScreen> {
           setState(() {
             _currentIndex = index;
           });
-          // 切换到作品页时刷新数据
           if (index == 1) {
             _worksTabKey.currentState?.refreshHistory();
           }
@@ -50,21 +51,21 @@ class _MainScreenState extends State<MainScreen> {
         unselectedFontSize: 12,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: '首页',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: l10n.tabHome,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.folder_outlined),
-            activeIcon: Icon(Icons.folder),
-            label: '作品',
+            icon: const Icon(Icons.folder_outlined),
+            activeIcon: const Icon(Icons.folder),
+            label: l10n.tabWorks,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: '我的',
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: l10n.tabProfile,
           ),
         ],
       ),

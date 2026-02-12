@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../widgets/image_compare_view.dart';
 import '../utils/theme.dart';
@@ -47,59 +48,54 @@ class _PreviewScreenState extends State<PreviewScreen> {
     );
   }
 
-  // 构建AppBar
   PreferredSizeWidget _buildAppBar() {
+    final l10n = AppLocalizations.of(context);
     return AppBar(
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
       title: Consumer<app_provider.ImageProvider>(
         builder: (context, provider, child) {
           if (provider.images.isEmpty) {
-            return const Text('图片预览');
+            return Text(l10n.imagePreview);
           }
           return Text('${_currentIndex + 1} / ${provider.images.length}');
         },
       ),
       actions: [
-        // 分享按钮
         IconButton(
           icon: const Icon(Icons.share),
           onPressed: _shareImage,
-          tooltip: '分享',
+          tooltip: l10n.share,
         ),
-        // 保存按钮
         IconButton(
           icon: const Icon(Icons.save_alt),
           onPressed: _saveImage,
-          tooltip: '保存',
+          tooltip: l10n.save,
         ),
       ],
     );
   }
 
-  // 构建主体内容
   Widget _buildBody() {
+    final l10n = AppLocalizations.of(context);
     return Consumer<app_provider.ImageProvider>(
       builder: (context, provider, child) {
         if (provider.images.isEmpty) {
-          return const Center(
-            child: Text('没有图片', style: TextStyle(color: Colors.white)),
+          return Center(
+            child: Text(l10n.noImage, style: const TextStyle(color: Colors.white)),
           );
         }
-
-        // 过滤出成功压缩的图片
         final successImages = provider.images
             .where((img) => img.isSuccess)
             .toList();
-
         if (successImages.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, color: Colors.white70, size: 64),
-                SizedBox(height: 16),
-                Text('没有可预览的图片', style: TextStyle(color: Colors.white70)),
+                const Icon(Icons.error_outline, color: Colors.white70, size: 64),
+                const SizedBox(height: 16),
+                Text(l10n.noPreviewImages, style: const TextStyle(color: Colors.white70)),
               ],
             ),
           );
@@ -201,12 +197,12 @@ class _PreviewScreenState extends State<PreviewScreen> {
 
       await Share.shareXFiles([
         XFile(currentImage.compressedFile!.path),
-      ], text: '通过南瓜压缩压缩的图片');
+      ], text: AppLocalizations.of(context).shareSubjectText);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('分享失败: $e'),
+            content: Text(AppLocalizations.of(context).shareFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -233,18 +229,19 @@ class _PreviewScreenState extends State<PreviewScreen> {
       );
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         if (result != null && result['isSuccess'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('已保存到相册'),
+            SnackBar(
+              content: Text(l10n.savedToGallery),
               backgroundColor: AppTheme.successColor,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('保存失败，请检查相册权限'),
+            SnackBar(
+              content: Text(l10n.saveFailedCheckPermission),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -254,7 +251,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('保存失败: $e'),
+            content: Text(AppLocalizations.of(context).saveFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );

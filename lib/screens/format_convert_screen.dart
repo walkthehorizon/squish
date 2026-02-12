@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../models/compress_config.dart';
 import '../utils/theme.dart';
@@ -30,7 +31,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
       child: Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('格式转换'),
+        title: Text(AppLocalizations.of(context).formatTitle),
         centerTitle: true,
         actions: [
           Consumer<app_provider.ImageProvider>(
@@ -38,9 +39,9 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
               if (!provider.hasImages) return const SizedBox.shrink();
               return TextButton(
                 onPressed: () => _clearAllImages(context, provider),
-                child: const Text(
-                  '清除',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                child: Text(
+                  AppLocalizations.of(context).clearAll,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               );
             },
@@ -92,9 +93,9 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '输出格式',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).outputFormat,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -171,7 +172,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
                 ),
               ),
               child: Text(
-                provider.isProcessing ? '转换中...' : '开始压缩',
+                provider.isProcessing ? AppLocalizations.of(context).compressing : AppLocalizations.of(context).startCompressButton,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -211,8 +212,8 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('转换失败，没有可预览的图片'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).convertFailedNoPreview),
               backgroundColor: AppTheme.warningColor,
             ),
           );
@@ -223,7 +224,7 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('转换失败: $e'),
+            content: Text(AppLocalizations.of(context).compressFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -238,22 +239,23 @@ class _FormatConvertScreenState extends State<FormatConvertScreen> {
   ) {
     if (provider.images.isEmpty) return;
     
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清除全部'),
-        content: const Text('确定要清除所有已选择的图片吗？'),
+        title: Text(l10n.confirmClearAll),
+        content: Text(l10n.confirmClearAllContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               provider.clearAll();
               Navigator.pop(context);
             },
-            child: const Text('确定'),
+            child: Text(l10n.ok),
           ),
         ],
       ),

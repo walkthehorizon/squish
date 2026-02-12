@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../models/compress_config.dart';
 import '../utils/theme.dart';
@@ -31,7 +32,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
       child: Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('等比缩放'),
+        title: Text(AppLocalizations.of(context).scaleTitle),
         centerTitle: true,
         actions: [
           Consumer<app_provider.ImageProvider>(
@@ -39,9 +40,9 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
               if (!provider.hasImages) return const SizedBox.shrink();
               return TextButton(
                 onPressed: () => _clearAllImages(context, provider),
-                child: const Text(
-                  '清除',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                child: Text(
+                  AppLocalizations.of(context).clearAll,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               );
             },
@@ -101,9 +102,9 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    '尺寸比例',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context).scaleRatio,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -139,7 +140,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '百分比',
+                      AppLocalizations.of(context).scaleRatio,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -185,9 +186,9 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '输出格式',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).outputFormat,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -197,7 +198,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildFormatOption('原格式', null),
+              _buildFormatOption(AppLocalizations.of(context).formatOriginal, null),
               _buildFormatOption('png', ImageFormat.png),
               _buildFormatOption('jpg', ImageFormat.jpg),
               _buildFormatOption('webp', ImageFormat.webp),
@@ -265,7 +266,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
                 ),
               ),
               child: Text(
-                provider.isProcessing ? '压缩中...' : '开始压缩',
+                provider.isProcessing ? AppLocalizations.of(context).compressing : AppLocalizations.of(context).startCompressButton,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -309,7 +310,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
           final hasSkipped = provider.images.any((img) => img.errorMessage == '压缩后体积变大，已跳过');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(hasSkipped ? '压缩后体积未减小，已自动跳过' : '压缩失败，没有可预览的图片'),
+              content: Text(hasSkipped ? AppLocalizations.of(context).skippedNoSmaller : AppLocalizations.of(context).compressFailedNoPreview),
               backgroundColor: AppTheme.warningColor,
             ),
           );
@@ -320,7 +321,7 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('压缩失败: $e'),
+            content: Text(AppLocalizations.of(context).compressFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -335,22 +336,23 @@ class _ScaleCompressScreenState extends State<ScaleCompressScreen> {
   ) {
     if (provider.images.isEmpty) return;
     
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清除全部'),
-        content: const Text('确定要清除所有已选择的图片吗？'),
+        title: Text(l10n.confirmClearAll),
+        content: Text(l10n.confirmClearAllContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               provider.clearAll();
               Navigator.pop(context);
             },
-            child: const Text('确定'),
+            child: Text(l10n.ok),
           ),
         ],
       ),

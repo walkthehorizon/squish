@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../widgets/compress_config_panel.dart';
 import '../models/compress_config.dart';
@@ -37,17 +38,16 @@ class _ConfigScreenState extends State<ConfigScreen> {
     );
   }
   
-  // 构建AppBar
   PreferredSizeWidget _buildAppBar() {
+    final l10n = AppLocalizations.of(context);
     return AppBar(
-      title: const Text('压缩配置'),
+      title: Text(l10n.compressConfigTitle),
       actions: [
-        // 重置按钮
         if (_hasChanges)
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: _resetConfig,
-            tooltip: '重置',
+            tooltip: l10n.reset,
           ),
       ],
     );
@@ -76,8 +76,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
     );
   }
   
-  // 构建预设配置卡片
   Widget _buildPresetCards() {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -90,7 +90,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '快速预设',
+            l10n.quickPresets,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppTheme.textSecondary,
                   fontWeight: FontWeight.bold,
@@ -102,8 +102,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
             child: Row(
               children: [
                 _buildPresetCard(
-                  title: '高质量',
-                  subtitle: '质量90% + 等比80%',
+                  context,
+                  title: l10n.presetHigh,
+                  subtitle: l10n.presetHighSub,
                   icon: Icons.high_quality,
                   onTap: () => _applyPreset(
                     CompressConfig(
@@ -114,8 +115,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   ),
                 ),
                 _buildPresetCard(
-                  title: '平衡',
-                  subtitle: '质量75% + 等比70%',
+                  context,
+                  title: l10n.presetBalance,
+                  subtitle: l10n.presetBalanceSub,
                   icon: Icons.balance,
                   onTap: () => _applyPreset(
                     CompressConfig(
@@ -126,8 +128,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   ),
                 ),
                 _buildPresetCard(
-                  title: '高压缩',
-                  subtitle: '质量60% + 等比50%',
+                  context,
+                  title: l10n.presetStrong,
+                  subtitle: l10n.presetStrongSub,
                   icon: Icons.compress,
                   onTap: () => _applyPreset(
                     CompressConfig(
@@ -138,8 +141,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   ),
                 ),
                 _buildPresetCard(
-                  title: '智能',
-                  subtitle: '自动优化',
+                  context,
+                  title: l10n.presetSmart,
+                  subtitle: l10n.presetSmartSub,
                   icon: Icons.auto_awesome,
                   onTap: () => _applyPreset(
                     CompressConfig(
@@ -156,8 +160,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
     );
   }
   
-  // 构建预设卡片
-  Widget _buildPresetCard({
+  Widget _buildPresetCard(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -217,19 +221,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
       ),
       child: Row(
         children: [
-          // 取消按钮
           Expanded(
             child: OutlinedButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
           ),
           const SizedBox(width: 16),
-          // 保存按钮
           Expanded(
             child: ElevatedButton(
               onPressed: _hasChanges ? _saveConfig : null,
-              child: const Text('保存配置'),
+              child: Text(AppLocalizations.of(context).saveConfig),
             ),
           ),
         ],
@@ -237,47 +239,41 @@ class _ConfigScreenState extends State<ConfigScreen> {
     );
   }
   
-  // 应用预设配置
   void _applyPreset(CompressConfig preset) {
     setState(() {
       _tempConfig = preset;
       _hasChanges = true;
     });
-    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('已应用预设配置'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).presetApplied),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
-  
-  // 重置配置
+
   void _resetConfig() {
     final provider = context.read<app_provider.ImageProvider>();
     setState(() {
       _tempConfig = provider.config;
       _hasChanges = false;
     });
-    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('已重置配置'),
-        duration: Duration(seconds: 1),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).configReset),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
-  
-  // 保存配置
+
   void _saveConfig() {
     final provider = context.read<app_provider.ImageProvider>();
     provider.updateConfig(_tempConfig);
-    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('配置已保存'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).configSaved),
         backgroundColor: AppTheme.successColor,
-        duration: Duration(seconds: 1),
+        duration: const Duration(seconds: 1),
       ),
     );
     
@@ -295,19 +291,20 @@ class _ConfigScreenState extends State<ConfigScreen> {
       return true;
     }
     
+    final l10n = AppLocalizations.of(context);
     final shouldPop = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('放弃更改？'),
-        content: const Text('您有未保存的配置更改，确定要放弃吗？'),
+        title: Text(l10n.discardChanges),
+        content: Text(l10n.discardChangesContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('继续编辑'),
+            child: Text(l10n.continueEdit),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('放弃'),
+            child: Text(l10n.discard),
           ),
         ],
       ),

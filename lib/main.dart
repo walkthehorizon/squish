@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'providers/image_provider.dart' as app_provider;
+import 'providers/locale_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/theme.dart';
-import 'utils/constants.dart';
 
 void main() {
   runApp(const PumpkinImageCompressApp());
@@ -16,15 +17,28 @@ class PumpkinImageCompressApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => app_provider.ImageProvider(),
-      ),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => app_provider.ImageProvider()),
       ],
-      child: MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const SplashScreen(),
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, _) {
+          return MaterialApp(
+            title: 'PhotoSquish',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            locale: localeProvider.locale,
+            supportedLocales: const [
+              Locale('en'),
+              Locale('zh'),
+            ],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

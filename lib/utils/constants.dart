@@ -1,7 +1,7 @@
 // 应用常量配置
 class AppConstants {
   // 应用名称
-  static const String appName = '南瓜压缩';
+  static const String appName = 'PhotoSquish';
   
   // 图片选择
   static const int maxImageCount = 20; // 最大选择图片数量

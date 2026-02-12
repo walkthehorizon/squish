@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme.dart';
 
 // 帮助手册页面
@@ -7,10 +8,11 @@ class HelpManualScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('帮助手册'),
+        title: Text(l10n.helpTitle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -19,26 +21,26 @@ class HelpManualScreen extends StatelessWidget {
           children: [
             _buildHelpCard(
               icon: Icons.verified_user,
-              title: '无损压缩',
-              description: '不改变图片尺寸,只压缩图片大小,对图片质量基本没有影响',
+              title: l10n.helpLossless,
+              description: l10n.helpLosslessDesc,
             ),
             const SizedBox(height: 12),
             _buildHelpCard(
               icon: Icons.aspect_ratio,
-              title: '等比压缩',
-              description: '等比例改变图片尺寸,影响图片质量,但是压缩效果较好',
+              title: l10n.helpScale,
+              description: l10n.helpScaleDesc,
             ),
             const SizedBox(height: 12),
             _buildHelpCard(
               icon: Icons.crop_free,
-              title: '指定尺寸',
-              description: '可选择指定尺寸或指定像素压缩,灵活满足您的需求',
+              title: l10n.helpResize,
+              description: l10n.helpResizeDesc,
             ),
             const SizedBox(height: 12),
             _buildHelpCard(
               icon: Icons.swap_horiz,
-              title: '格式转换',
-              description: '转换成您需要的图片格式,转换后也可以继续压缩哦',
+              title: l10n.helpFormat,
+              description: l10n.helpFormatDesc,
             ),
           ],
         ),

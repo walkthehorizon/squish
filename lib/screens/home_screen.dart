@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../models/image_item.dart';
 import '../widgets/image_grid_item.dart';
 import '../utils/theme.dart';
-import '../utils/constants.dart';
 import 'config_screen.dart';
 import 'preview_screen.dart';
 
@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
             },
           ),
           const SizedBox(width: 8),
-          const Text(AppConstants.appName),
+          Text(AppLocalizations.of(context).appName),
         ],
       ),
       actions: [
@@ -65,8 +65,7 @@ class HomeScreen extends StatelessWidget {
         
         return Column(
           children: [
-            // 进度条
-            if (provider.isProcessing) _buildProgressBar(provider),
+            if (provider.isProcessing) _buildProgressBar(context, provider),
             
             // 图片网格
             Expanded(
@@ -78,8 +77,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  // 构建空状态
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -91,14 +90,14 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            '还没有图片',
+            l10n.noImagesYet,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Colors.grey[400],
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '点击右下角按钮添加图片',
+            l10n.tapToAddImages,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[400],
                 ),
@@ -108,8 +107,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  // 构建进度条
-  Widget _buildProgressBar(app_provider.ImageProvider provider) {
+  Widget _buildProgressBar(BuildContext context, app_provider.ImageProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: AppTheme.lightOrange.withOpacity(0.3),
@@ -120,7 +118,8 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '正在压缩 ${provider.processedCount}/${provider.images.length}',
+                AppLocalizations.of(context).compressingProgress(
+                    '${provider.processedCount}', '${provider.images.length}'),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryOrange,
@@ -178,7 +177,7 @@ class HomeScreen extends StatelessWidget {
       builder: (context, provider, child) {
         return FloatingActionButton(
           onPressed: provider.isProcessing ? null : () => _addImages(context, provider),
-          tooltip: '添加图片',
+          tooltip: AppLocalizations.of(context).addImages,
           child: const Icon(Icons.add_photo_alternate),
         );
       },
@@ -200,29 +199,23 @@ class HomeScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.settings),
                   onPressed: () => _openConfig(context),
-                  tooltip: '压缩配置',
+                  tooltip: AppLocalizations.of(context).compressConfig,
                 ),
-                
                 const SizedBox(width: 8),
-                
-                // 清空按钮
                 TextButton.icon(
                   onPressed: provider.hasImages && !provider.isProcessing
                       ? () => _confirmClearAll(context, provider)
                       : null,
                   icon: const Icon(Icons.clear_all),
-                  label: const Text('清空'),
+                  label: Text(AppLocalizations.of(context).clear),
                 ),
-                
                 const Spacer(),
-                
-                // 开始压缩按钮
                 ElevatedButton.icon(
                   onPressed: provider.hasImages && !provider.isProcessing
                       ? () => _startCompression(context, provider)
                       : null,
                   icon: const Icon(Icons.compress),
-                  label: const Text('开始压缩'),
+                  label: Text(AppLocalizations.of(context).startCompress),
                 ),
               ],
             ),
@@ -240,7 +233,7 @@ class HomeScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('添加图片失败: $e'),
+            content: Text(AppLocalizations.of(context).addImagesFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -265,8 +258,8 @@ class HomeScreen extends StatelessWidget {
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('压缩完成！'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).compressDone),
             backgroundColor: AppTheme.successColor,
           ),
         );
@@ -286,7 +279,7 @@ class HomeScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('压缩失败: $e'),
+            content: Text(AppLocalizations.of(context).compressFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -304,21 +297,21 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  // 确认删除图片
   Future<void> _confirmRemove(BuildContext context, app_provider.ImageProvider provider, String id) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除这张图片吗？'),
+        title: Text(l10n.confirmDelete),
+        content: Text(l10n.confirmDeleteContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('删除'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -329,21 +322,21 @@ class HomeScreen extends StatelessWidget {
     }
   }
   
-  // 确认清空所有
   Future<void> _confirmClearAll(BuildContext context, app_provider.ImageProvider provider) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认清空'),
-        content: const Text('确定要清空所有图片吗？'),
+        title: Text(l10n.confirmClear),
+        content: Text(l10n.confirmClearContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('清空'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -354,33 +347,32 @@ class HomeScreen extends StatelessWidget {
     }
   }
   
-  // 显示统计信息
   void _showStatistics(BuildContext context, app_provider.ImageProvider provider) {
+    final l10n = AppLocalizations.of(context);
     final stats = provider.getStatistics();
-    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.analytics, color: AppTheme.primaryOrange),
-            SizedBox(width: 8),
-            Text('统计信息'),
+            const Icon(Icons.analytics, color: AppTheme.primaryOrange),
+            const SizedBox(width: 8),
+            Text(l10n.statistics),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildStatRow('总图片数', '${stats['totalCount']}'),
-            _buildStatRow('成功压缩', '${stats['successCount']}'),
-            _buildStatRow('失败数量', '${stats['failedCount']}'),
+            _buildStatRow(l10n.totalCount, '${stats['totalCount']}'),
+            _buildStatRow(l10n.successCount, '${stats['successCount']}'),
+            _buildStatRow(l10n.failedCount, '${stats['failedCount']}'),
             const Divider(),
-            _buildStatRow('原始总大小', 
+            _buildStatRow(l10n.totalOriginalSize,
                 ImageItem.formatFileSize(stats['totalOriginalSize'])),
-            _buildStatRow('压缩后大小', 
+            _buildStatRow(l10n.totalCompressedSize,
                 ImageItem.formatFileSize(stats['totalCompressedSize'])),
-            _buildStatRow('总压缩率', 
+            _buildStatRow(l10n.totalRatio,
                 '${stats['compressionRatio'].toStringAsFixed(1)}%',
                 highlight: true),
           ],
@@ -388,7 +380,7 @@ class HomeScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
+            child: Text(l10n.close),
           ),
         ],
       ),

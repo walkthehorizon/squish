@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme.dart';
 import 'lossless_compress_screen.dart';
 import 'scale_compress_screen.dart';
@@ -11,10 +12,11 @@ class HomeTabScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('图片处理'),
+        title: Text(l10n.imageProcess),
         centerTitle: true,
       ),
       body: Padding(
@@ -28,8 +30,8 @@ class HomeTabScreen extends StatelessWidget {
             _buildFunctionCard(
               context,
               icon: Icons.high_quality,
-              title: '无损压缩',
-              subtitle: '不影响尺寸大小',
+              title: l10n.losslessCompress,
+              subtitle: l10n.losslessSubtitle,
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -47,8 +49,8 @@ class HomeTabScreen extends StatelessWidget {
             _buildFunctionCard(
               context,
               icon: Icons.aspect_ratio,
-              title: '等比缩放',
-              subtitle: '等比例模式',
+              title: l10n.scaleCompress,
+              subtitle: l10n.scaleSubtitle,
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -66,8 +68,8 @@ class HomeTabScreen extends StatelessWidget {
             _buildFunctionCard(
               context,
               icon: Icons.crop,
-              title: '指定尺寸',
-              subtitle: '指定大小',
+              title: l10n.resizeCompress,
+              subtitle: l10n.resizeSubtitle,
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -85,8 +87,8 @@ class HomeTabScreen extends StatelessWidget {
             _buildFunctionCard(
               context,
               icon: Icons.transform,
-              title: '格式转换',
-              subtitle: '一键转换格式',
+              title: l10n.formatConvert,
+              subtitle: l10n.formatSubtitle,
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

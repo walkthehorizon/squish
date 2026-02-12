@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../utils/theme.dart';
 
@@ -38,7 +39,7 @@ class ImageSelectionArea extends StatelessWidget {
                   ),
                   child: provider.hasImages
                       ? _buildImagePreview(context, provider)
-                      : _buildEmptyState(),
+                      : _buildEmptyState(context),
                 ),
               );
             },
@@ -48,8 +49,7 @@ class ImageSelectionArea extends StatelessWidget {
     );
   }
   
-  // 构建空状态
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -71,9 +71,9 @@ class ImageSelectionArea extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          '请选取图片',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).pickImages,
+          style: const TextStyle(
             fontSize: 16,
             color: AppTheme.textSecondary,
           ),
@@ -81,7 +81,7 @@ class ImageSelectionArea extends StatelessWidget {
       ],
     );
   }
-  
+
   // 构建图片预览
   Widget _buildImagePreview(BuildContext context, app_provider.ImageProvider provider) {
     final imageCount = provider.images.length;
@@ -243,7 +243,7 @@ class ImageSelectionArea extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('选择图片失败: $e'),
+            content: Text(AppLocalizations.of(context).pickImagesFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );

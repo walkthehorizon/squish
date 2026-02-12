@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme.dart';
 import '../models/compress_history_item.dart';
 import '../services/storage_service.dart';
@@ -75,20 +76,20 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
   
   @override
   Widget build(BuildContext context) {
-    super.build(context); // 必须调用以支持 AutomaticKeepAliveClientMixin
-    
+    super.build(context);
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('压缩记录'),
+        title: Text(l10n.worksTitle),
         centerTitle: true,
         actions: [
           if (_historyList.isNotEmpty)
             TextButton(
               onPressed: () => _showClearDialog(context),
-              child: const Text(
-                '清除',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+              child: Text(
+                l10n.clearAll,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
         ],
@@ -96,7 +97,7 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _historyList.isEmpty
-              ? _buildEmptyState()
+              ? _buildEmptyState(context)
               : RefreshIndicator(
                   onRefresh: _loadHistory,
                   child: ListView.builder(
@@ -110,8 +111,8 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
     );
   }
   
-  // 构建空状态
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -123,7 +124,7 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
           ),
           const SizedBox(height: 16),
           Text(
-            '暂无压缩记录',
+            l10n.noHistory,
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[500],
@@ -131,7 +132,7 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
           ),
           const SizedBox(height: 8),
           Text(
-            '压缩图片后会自动保存到这里',
+            l10n.historyHint,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[400],
@@ -164,9 +165,9 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('已删除'),
-              duration: Duration(seconds: 1),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).deleted),
+              duration: const Duration(seconds: 1),
             ),
           );
         }
@@ -332,17 +333,17 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
     });
   }
   
-  // 显示清除对话框
   void _showClearDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清空记录'),
-        content: const Text('确定要清空所有压缩记录吗？'),
+        title: Text(l10n.confirmClearHistory),
+        content: Text(l10n.confirmClearHistoryContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -350,7 +351,7 @@ class WorksTabScreenState extends State<WorksTabScreen> with AutomaticKeepAliveC
               Navigator.pop(context);
               _loadHistory();
             },
-            child: const Text('确定'),
+            child: Text(l10n.ok),
           ),
         ],
       ),

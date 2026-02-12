@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/image_provider.dart' as app_provider;
 import '../models/compress_config.dart';
 import '../models/image_item.dart';
@@ -61,7 +62,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('选择图片失败: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context).pickImagesFailed(e.toString()))),
         );
       }
     }
@@ -81,7 +82,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       child: Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(
-          title: const Text('指定尺寸'),
+          title: Text(AppLocalizations.of(context).resizeTitle),
           centerTitle: true,
           actions: [
             if (hasImage)
@@ -95,9 +96,9 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
                     _heightController.clear();
                   });
                 },
-                child: const Text(
-                  '清除',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                child: Text(
+                  AppLocalizations.of(context).clearAll,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
           ],
@@ -180,9 +181,9 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
                     child: const Icon(Icons.add, color: Colors.white, size: 40),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    '请选取图片',
-                    style: TextStyle(color: AppTheme.primaryOrange, fontSize: 16),
+                  Text(
+                    AppLocalizations.of(context).pickImages,
+                    style: const TextStyle(color: AppTheme.primaryOrange, fontSize: 16),
                   ),
                 ],
               ),
@@ -242,14 +243,14 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '自定义像素',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).customPixels,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               if (_originalWidth != null) ...[
                 const SizedBox(width: 8),
                 Text(
-                  '原图 $_originalWidth*$_originalHeight',
+                  AppLocalizations.of(context).originalSize('$_originalWidth', '$_originalHeight'),
                   style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
                 ),
               ],
@@ -260,9 +261,9 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
             children: [
               Expanded(
                 child: _buildInputBox(
-                  '指定宽度',
+                  AppLocalizations.of(context).targetWidth,
                   _widthController,
-                  _originalWidth != null ? '1~$_originalWidth' : '',
+                  _originalWidth != null ? AppLocalizations.of(context).rangeWidth('$_originalWidth') : '',
                   (val) {
                     final intValue = int.tryParse(val);
                     if (intValue != null && _originalWidth != null) {
@@ -281,9 +282,9 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildInputBox(
-                  '指定高度',
+                  AppLocalizations.of(context).targetHeight,
                   _heightController,
-                  _originalHeight != null ? '1~$_originalHeight' : '',
+                  _originalHeight != null ? AppLocalizations.of(context).rangeHeight('$_originalHeight') : '',
                   (val) {
                     final intValue = int.tryParse(val);
                     if (intValue != null && _originalHeight != null) {
@@ -336,7 +337,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              const Text('像素', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+              Text(AppLocalizations.of(context).pixels, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
             ],
           ),
         ],
@@ -362,16 +363,16 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
-                '输出格式',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context).outputFormat,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildFormatOption('原格式', null),
+              _buildFormatOption(AppLocalizations.of(context).formatOriginal, null),
               _buildFormatOption('png', ImageFormat.png),
               _buildFormatOption('jpg', ImageFormat.jpg),
               _buildFormatOption('webp', ImageFormat.webp),
@@ -452,7 +453,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
             child: Container(
               alignment: Alignment.center,
               child: Text(
-                provider.isProcessing ? '处理中...' : '开始压缩',
+                provider.isProcessing ? AppLocalizations.of(context).processing : AppLocalizations.of(context).startCompressButton,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
@@ -466,7 +467,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
   Future<void> _startCompress(app_provider.ImageProvider provider) async {
     if (_targetWidth == null || _targetHeight == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入目标尺寸')),
+        SnackBar(content: Text(AppLocalizations.of(context).inputTargetSize)),
       );
       return;
     }
@@ -498,7 +499,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
           final hasSkipped = provider.images.any((img) => img.errorMessage == '压缩后体积变大，已跳过');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(hasSkipped ? '压缩后体积未减小，已自动跳过' : '压缩失败，没有可预览的图片'),
+              content: Text(hasSkipped ? AppLocalizations.of(context).skippedNoSmaller : AppLocalizations.of(context).compressFailedNoPreview),
               backgroundColor: AppTheme.warningColor,
             ),
           );
@@ -509,7 +510,7 @@ class _ResizeCompressScreenState extends State<ResizeCompressScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('操作失败: $e'),
+            content: Text(AppLocalizations.of(context).compressFailed(e.toString())),
             backgroundColor: AppTheme.errorColor,
           ),
         );

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme.dart';
-import '../utils/constants.dart';
 import 'main_screen.dart';
 
 // 启动页
@@ -123,7 +123,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     
                     const SizedBox(height: 30),
                     
-                    // 应用名称
                     ShaderMask(
                       shaderCallback: (bounds) => LinearGradient(
                         colors: [
@@ -132,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ],
                       ).createShader(bounds),
                       child: Text(
-                        AppConstants.appName,
+                        AppLocalizations.of(context).appName,
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -141,22 +140,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 12),
-                    
-                    // 副标题
                     Text(
-                      '高效 · 便捷 · 专业',
+                      AppLocalizations.of(context).splashTagline,
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey[600],
                         letterSpacing: 4,
                       ),
                     ),
-                    
                     const SizedBox(height: 60),
-                    
-                    // 加载动画
                     SizedBox(
                       width: 40,
                       height: 40,
@@ -167,12 +160,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 20),
-                    
-                    // 加载文字
                     Text(
-                      '正在启动...',
+                      AppLocalizations.of(context).splashLoading,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[500],
