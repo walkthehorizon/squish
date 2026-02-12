@@ -16,24 +16,21 @@ class ProfileTabScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: Text(l10n.profileTitle),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(l10n.profileTitle), centerTitle: true),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20),
-            
+
             _buildHeader(context),
-            
+
             const SizedBox(height: 20),
-            
+
             // VIP卡片
             _buildVipCard(context),
-            
+
             const SizedBox(height: 20),
-            
+
             // 功能列表
             _buildFunctionList(context),
           ],
@@ -41,7 +38,7 @@ class ProfileTabScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildHeader(BuildContext context) {
     return Column(
       children: [
@@ -63,19 +60,12 @@ class ProfileTabScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(
-            Icons.person,
-            size: 40,
-            color: Colors.white,
-          ),
+          child: const Icon(Icons.person, size: 40, color: Colors.white),
         ),
         const SizedBox(height: 12),
         Text(
           AppLocalizations.of(context).photoCompress,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -160,7 +150,7 @@ class ProfileTabScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   // 构建功能列表
   Widget _buildFunctionList(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -228,15 +218,13 @@ class ProfileTabScreen extends StatelessWidget {
             onTap: () {
               final locale = context.read<LocaleProvider>().locale;
               final path = locale.languageCode == 'zh'
-                  ? 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/user-agreement.html'
-                  : 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/user-agreement-en.html';
+                  ? 'https://walkthehorizon.github.io/squish/static/user-agreement.html'
+                  : 'https://walkthehorizon.github.io/squish/static/user-agreement-en.html';
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
-                    title: l10n.userAgreement,
-                    assetPath: path,
-                  ),
+                  builder: (context) =>
+                      WebViewScreen(title: l10n.userAgreement, assetPath: path),
                 ),
               );
             },
@@ -249,15 +237,13 @@ class ProfileTabScreen extends StatelessWidget {
             onTap: () {
               final locale = context.read<LocaleProvider>().locale;
               final path = locale.languageCode == 'zh'
-                  ? 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/privacy-policy.html'
-                  : 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/privacy-policy-en.html';
+                  ? 'https://walkthehorizon.github.io/squish/static/privacy-policy.html'
+                  : 'https://walkthehorizon.github.io/squish/static/privacy-policy-en.html';
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => WebViewScreen(
-                    title: l10n.privacyPolicy,
-                    assetPath: path,
-                  ),
+                  builder: (context) =>
+                      WebViewScreen(title: l10n.privacyPolicy, assetPath: path),
                 ),
               );
             },
@@ -331,21 +317,18 @@ class ProfileTabScreen extends StatelessWidget {
           color: iconColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          icon,
-          color: iconColor,
-          size: 20,
-        ),
+        child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(title),
-      trailing: trailing ??
+      trailing:
+          trailing ??
           (showArrow
               ? const Icon(Icons.chevron_right, color: AppTheme.textHint)
               : null),
       onTap: onTap,
     );
   }
-  
+
   // 构建分隔线
   Widget _buildDivider() {
     return Divider(
@@ -355,7 +338,7 @@ class ProfileTabScreen extends StatelessWidget {
       color: Colors.grey[200],
     );
   }
-  
+
   void _showLogoutDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
