@@ -25,10 +25,11 @@ class ImagePickerService {
       return status.isGranted;
     } else if (Platform.isIOS) {
       PermissionStatus status = await Permission.photos.status;
-      if (!status.isGranted) {
+      if (!status.isGranted && status != PermissionStatus.limited) {
         status = await Permission.photos.request();
       }
-      return status.isGranted;
+      // iOS 14+：用户选择「选取照片」时为 limited，仍可打开选择器
+      return status.isGranted || status == PermissionStatus.limited;
     }
     return true;
   }
@@ -36,25 +37,26 @@ class ImagePickerService {
   // 从相册选择多张图片
   Future<List<File>?> pickMultipleImages() async {
     try {
-      // 检查权限
       bool hasPermission = await requestPermission();
-      if (!hasPermission) {
+      // iOS：即使 permission 未授予也尝试打开选择器（iOS 14+ PHPicker 可能仍可用）
+      if (!hasPermission && !Platform.isIOS) {
         throw Exception('没有相册访问权限');
       }
-      
-      // 选择图片
+
       final List<XFile> images = await _picker.pickMultiImage(
         imageQuality: 100, // 选择原图
         limit: AppConstants.maxImageCount, // 限制数量
       );
-      
+
       if (images.isEmpty) {
         return null;
       }
-      
-      // 转换为File列表
+
       return images.map((xFile) => File(xFile.path)).toList();
     } catch (e) {
+      if (e is Exception && e.toString().contains('没有相册访问权限')) {
+        rethrow;
+      }
       throw Exception('选择图片失败: $e');
     }
   }
@@ -62,24 +64,25 @@ class ImagePickerService {
   // 从相册选择单张图片
   Future<File?> pickSingleImage() async {
     try {
-      // 检查权限
       bool hasPermission = await requestPermission();
-      if (!hasPermission) {
+      if (!hasPermission && !Platform.isIOS) {
         throw Exception('没有相册访问权限');
       }
-      
-      // 选择图片
+
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 100,
       );
-      
+
       if (image == null) {
         return null;
       }
-      
+
       return File(image.path);
     } catch (e) {
+      if (e is Exception && e.toString().contains('没有相册访问权限')) {
+        rethrow;
+      }
       throw Exception('选择图片失败: $e');
     }
   }

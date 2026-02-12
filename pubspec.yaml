@@ -62,6 +62,9 @@ dependencies:
   # 本地存储
   shared_preferences: ^2.2.2
 
+  # WebView 展示协议/隐私
+  webview_flutter: ^4.4.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -90,6 +93,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/html/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

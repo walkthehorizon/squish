@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/theme.dart';
 import 'help_manual_screen.dart';
 import 'contact_service_screen.dart';
+import 'web_view_screen.dart';
 
 // 我的Tab
 class ProfileTabScreen extends StatelessWidget {
@@ -201,14 +202,30 @@ class ProfileTabScreen extends StatelessWidget {
             icon: Icons.description_outlined,
             iconColor: Colors.orange,
             title: '用户协议',
-            onTap: () => _showComingSoon(context),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const WebViewScreen(
+                  title: '用户协议',
+                  assetPath: 'assets/html/user_agreement.html',
+                ),
+              ),
+            ),
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.privacy_tip_outlined,
             iconColor: Colors.red,
             title: '隐私政策',
-            onTap: () => _showComingSoon(context),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const WebViewScreen(
+                  title: '隐私政策',
+                  assetPath: 'assets/html/privacy_policy.html',
+                ),
+              ),
+            ),
           ),
           _buildDivider(),
           _buildMenuItem(
@@ -274,16 +291,6 @@ class ProfileTabScreen extends StatelessWidget {
       indent: 60,
       endIndent: 16,
       color: Colors.grey[200],
-    );
-  }
-  
-  // 显示即将推出提示
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('功能即将推出'),
-        duration: Duration(seconds: 1),
-      ),
     );
   }
   
