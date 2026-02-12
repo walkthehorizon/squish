@@ -1,14 +1,12 @@
 # 照片压缩 PhotoSquish - 用户协议与隐私政策（静态站点）
 
-本目录为**腾讯云 CloudBase 静态网站托管**可部署的静态站点，包含用户协议与隐私政策的中英文页面，适用于 App Store / 应用内 WebView 链接。
-
-参考文档：[腾讯云 - 静态网站托管](https://cloud.tencent.com/document/product/876/123943)
+本目录为静态站点，可部署到 **腾讯云 CloudBase** 或 **GitHub Pages**，包含用户协议与隐私政策的中英文页面，适用于 App Store / 应用内 WebView 链接。
 
 ## 目录结构
 
 ```
 static-host/
-├── index.html              # 首页（导航到各协议/隐私页）
+├── index.html              # 首页（重定向到隐私政策）
 ├── user-agreement.html     # 用户协议（中文）
 ├── user-agreement-en.html  # 用户协议（英文）
 ├── privacy-policy.html     # 隐私政策（中文）
@@ -17,6 +15,8 @@ static-host/
 ```
 
 ## 部署到腾讯云静态网站托管
+
+参考：[腾讯云 - 静态网站托管](https://cloud.tencent.com/document/product/876/123943)
 
 ### 方式一：控制台上传
 
@@ -62,9 +62,28 @@ static-host/
   `https://你的域名/privacy-policy-en.html`（英文）；或根据应用语言在 WebView 中加载对应 URL。
 - 用户协议链接：同上，使用 `user-agreement.html` / `user-agreement-en.html`。
 
+## 部署到 GitHub Pages
+
+1. **开启 Pages（仅需一次）**  
+   仓库 → **Settings** → **Pages** → **Build and deployment** → **Source** 选择 **GitHub Actions**。
+
+2. **自动部署**  
+   已配置工作流 `.github/workflows/deploy-legal-pages.yml`：当 `static-host/` 下有文件变更并 push 到 `main`（或 `master`）时自动发布；也可在 **Actions** 页手动运行 “Deploy legal pages to GitHub Pages”。
+
+3. **访问地址**  
+   发布成功后地址为：  
+   `https://<你的用户名>.github.io/<仓库名>/`  
+   建议将仓库名设为 **squish** 以缩短链接，例如：`https://xxx.github.io/squish/`  
+   - 隐私政策（中文）：`.../squish/privacy-policy.html`  
+   - 隐私政策（英文）：`.../squish/privacy-policy-en.html`  
+   - 用户协议（中文）：`.../squish/user-agreement.html`  
+   - 用户协议（英文）：`.../squish/user-agreement-en.html`
+
+若默认分支不是 `main` 也不是 `master`，可在该 workflow 的 `branches` 中加上你的分支名。
+
 ## 索引文档说明
 
-根据腾讯云静态托管规则，根目录及子目录的默认索引文档为 **index.html**。访问根路径时会返回 index.html，无需在 URL 后加 `/index.html`。
+根目录默认索引文档为 **index.html**（当前为跳转到隐私政策）。访问根路径时会返回 index.html。
 
 ## 更新内容
 
