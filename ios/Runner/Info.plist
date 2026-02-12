@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pumpkin Image Compress</string>
+	<string>PhotoSquish</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>pumpkin_image_compress</string>
+	<string>PhotoSquish</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -49,5 +49,8 @@
 	<string>需要访问相册以选择图片进行压缩</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>需要保存压缩后的图片到相册</string>
+	<!-- 仅使用标准加密(如HTTPS)，无需出口合规申报 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

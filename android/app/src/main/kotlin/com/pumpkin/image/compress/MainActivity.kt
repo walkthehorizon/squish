@@ -1,4 +1,4 @@
-package com.pumpkin.image.compress.pumpkin_image_compress
+package com.pumpkin.image.compress
 
 import io.flutter.embedding.android.FlutterActivity
 

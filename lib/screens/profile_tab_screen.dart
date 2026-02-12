@@ -228,8 +228,8 @@ class ProfileTabScreen extends StatelessWidget {
             onTap: () {
               final locale = context.read<LocaleProvider>().locale;
               final path = locale.languageCode == 'zh'
-                  ? 'assets/html/user_agreement.html'
-                  : 'assets/html/user_agreement_en.html';
+                  ? 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/user-agreement.html'
+                  : 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/user-agreement-en.html';
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -249,8 +249,8 @@ class ProfileTabScreen extends StatelessWidget {
             onTap: () {
               final locale = context.read<LocaleProvider>().locale;
               final path = locale.languageCode == 'zh'
-                  ? 'assets/html/privacy_policy.html'
-                  : 'assets/html/privacy_policy_en.html';
+                  ? 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/privacy-policy.html'
+                  : 'https://pumpkin-2gol1r6d4251cf0e-1251812446.tcloudbaseapp.com/squish/privacy-policy-en.html';
               Navigator.push(
                 context,
                 MaterialPageRoute(

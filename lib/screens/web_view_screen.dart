@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../utils/theme.dart';
 
-/// 用于展示本地 HTML（如用户协议、隐私政策）
+/// 用于展示用户协议、隐私政策，支持本地 asset 或远程 URL
 class WebViewScreen extends StatefulWidget {
   const WebViewScreen({
     super.key,
@@ -12,6 +12,7 @@ class WebViewScreen extends StatefulWidget {
   });
 
   final String title;
+  /// 本地资源路径（如 assets/html/xxx.html）或完整远程 URL（https://...）
   final String assetPath;
 
   @override
@@ -46,12 +47,18 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   Future<void> _loadHtml() async {
     try {
-      final html = await rootBundle.loadString(widget.assetPath);
-      if (!mounted) return;
-      await _controller.loadHtmlString(
-        html,
-        baseUrl: null,
-      );
+      final path = widget.assetPath;
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        if (!mounted) return;
+        await _controller.loadRequest(Uri.parse(path));
+      } else {
+        final html = await rootBundle.loadString(path);
+        if (!mounted) return;
+        await _controller.loadHtmlString(
+          html,
+          baseUrl: null,
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
